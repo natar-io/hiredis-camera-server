@@ -41,8 +41,8 @@ set(SERV_SOURCES
 
         include/RedisCameraServer.hpp)
 
-add_executable (rcamcli ${CLI_SOURCES} ${HEADERS})
-target_link_libraries (rcamcli ${REDISIMAGEHELPER_LIBS} ${HIREDIS_LIBS} ${OpenCV_LIBS} ev)
+add_executable (redis-camera-client ${CLI_SOURCES} ${HEADERS})
+target_link_libraries (redis-camera-client ${REDISIMAGEHELPER_LIBS} ${HIREDIS_LIBS} ${OpenCV_LIBS} ${EV_LIBS})
 
-add_executable (rcamserv ${SERV_SOURCES} ${HEADERS})
-target_link_libraries(rcamserv ${REDISIMAGEHELPER_LIBS} ${HIREDIS_LIBS} ${OpenCV_LIBS} ev)
+add_executable (redis-camera-server ${SERV_SOURCES} ${HEADERS})
+target_link_libraries(redis-camera-server ${REDISIMAGEHELPER_LIBS} ${HIREDIS_LIBS} ${OpenCV_LIBS} ${EV_LIBS})

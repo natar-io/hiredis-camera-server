@@ -101,7 +101,7 @@ static int parseCommandLine(cxxopts::Options options, int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-    cxxopts::Options options("rcamserv", "Camera server example program.");
+    cxxopts::Options options(argv[0], "Camera server example program.");
     options.add_options()
             ("redis-host", "The host adress to which the redis client should try to connect", cxxopts::value<std::string>())
             ("redis-port", "The port to which the redis client should try to connect.", cxxopts::value<int>())

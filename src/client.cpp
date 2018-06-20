@@ -126,7 +126,7 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
 
 int main(int argc, char** argv)
 {
-    cxxopts::Options options("rcamcli", "Camera client sample program.");
+    cxxopts::Options options(argv[0], "Camera client sample program.");
     options.add_options()
             ("redis-host", "The host adress to which the redis client should try to connect", cxxopts::value<std::string>())
             ("redis-port", "The port to which the redis client should try to connect.", cxxopts::value<int>())
