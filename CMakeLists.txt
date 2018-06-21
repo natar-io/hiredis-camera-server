@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.2)
-project(redisimagehelper-example)
+project(hiredis-camera-server)
 
 set (CMAKE_CXX_STANDARD 11)
 

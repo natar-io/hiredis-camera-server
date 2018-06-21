@@ -85,6 +85,7 @@ static int parseCommandLine(cxxopts::Options options, int argc, char** argv)
             std::cerr << "No camera parameters output key specified. Camera parameters output key was set to " << redisInputCameraParametersKey << std::endl;
         }
     }
+
     return 0;
 }
 
@@ -149,22 +150,23 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
+    struct cameraParams contextData;
+    contextData.width = clientSync.getInt(redisInputCameraParametersKey + ":width");
+    contextData.height = clientSync.getInt(redisInputCameraParametersKey + ":height");
+    contextData.channels = clientSync.getInt(redisInputCameraParametersKey + ":channels");
+
     if (STREAM_MODE) {
         RedisImageHelperAsync clientAsync(redisHost, redisPort, redisInputKey);
         if (!clientAsync.connect()) {
             std::cerr << "Could not connect to redis server." << std::endl;
             return EXIT_FAILURE;
         }
-        struct cameraParams cameraParams;
-        cameraParams.width = clientSync.getInt(redisInputCameraParametersKey + ":width");
-        cameraParams.height = clientSync.getInt(redisInputCameraParametersKey + ":height");
-        cameraParams.channels = clientSync.getInt(redisInputCameraParametersKey + ":channels");
-        clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&cameraParams));
+        clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&contextData));
         return EXIT_SUCCESS;
     }
     else {
         cv::Mat displayFrame;
-        Image* image = clientSync.getImage(redisInputKey);
+        Image* image = clientSync.getImage(contextData.width, contextData.height, contextData.channels, redisInputKey);
         if (image == NULL) { std::cerr << "Error: Could not get camera frame, exiting..." << std::endl; return EXIT_FAILURE;}
         cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
         cv::cvtColor(frame, displayFrame, CV_RGB2BGR);
