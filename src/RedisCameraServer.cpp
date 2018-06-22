@@ -31,19 +31,19 @@ bool RedisCameraServer::start(std::string gstreamerCommand)
 
 bool RedisCameraServer::start(int cameraId)
 {
-    if (!m_imageClient->connect())
-    {
-        std::cout << "Could not connect" << std::endl;
-        return false;
-    }
-
     m_camera = new cv::VideoCapture(cameraId);
-
     if (!m_camera->isOpened())
     {
-        std::cout << "Could not open video capture device" << std::endl;
+        std::cout << "Could not open video capture device " << cameraId << "." << std::endl;
         return false;
     }
+
+    if (!m_imageClient->connect())
+    {
+        std::cout << "Could not connect to the redis server." << std::endl;
+        return false;
+    }
+
     return true;
 }
 
