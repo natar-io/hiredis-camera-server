@@ -118,7 +118,7 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
             return;
         }
         cv::Mat frame = cv::Mat(cFrame->height(), cFrame->width(), CV_8UC3, (void*)cFrame->data());
-        cv::cvtColor(frame, displayFrame, CV_RGB2BGR);
+        cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
         cv::imshow("frame", displayFrame);
         cv::waitKey(30);
         delete cFrame;
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
         Image* image = clientSync.getImage(contextData.width, contextData.height, contextData.channels, redisInputKey);
         if (image == NULL) { std::cerr << "Error: Could not get camera frame, exiting..." << std::endl; return EXIT_FAILURE;}
         cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
-        cv::cvtColor(frame, displayFrame, CV_RGB2BGR);
+        cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
         cv::imshow("frame", displayFrame);
         cv::waitKey();
         delete image;

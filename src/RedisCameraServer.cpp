@@ -60,7 +60,7 @@ void RedisCameraServer::outputCameraFrame(bool publish, std::string outputKey)
 {
     cv::Mat frame, RGBFrame;
     *m_camera >> frame;
-    cv::cvtColor(frame, RGBFrame, CV_BGR2RGB);
+    cv::cvtColor(frame, RGBFrame, cv::COLOR_RGB2BGR);
 
     Image* image = new Image(RGBFrame.cols, RGBFrame.rows, RGBFrame.channels(), RGBFrame.data);
     if (publish)

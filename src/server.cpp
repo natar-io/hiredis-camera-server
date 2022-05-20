@@ -4,7 +4,8 @@
 #include <string>
 
 bool VERBOSE = false;
-bool STREAM_MODE = true;
+bool STREAM_MODE = false;
+bool UNIQUE = false;
 bool TEGRA = false;
 std::string redisOutputKey = "custom:image";
 std::string redisCameraParametersOutputKey = "default:camera:parameters";
@@ -55,9 +56,16 @@ static int parseCommandLine(cxxopts::Options options, int argc, char** argv)
     }
 
     if (result.count("u")) {
-        STREAM_MODE = false;
+        UNIQUE = true;
         if (VERBOSE) {
             std::cerr << "Unique mode enabled." << std::endl;
+        }
+    }
+
+    if (result.count("s")) {
+        STREAM_MODE = true;
+        if (VERBOSE) {
+            std::cerr << "Stream mode enabled." << std::endl;
         }
     }
 
@@ -106,7 +114,7 @@ int main(int argc, char** argv)
             ("redis-host", "The host adress to which the redis client should try to connect", cxxopts::value<std::string>())
             ("redis-port", "The port to which the redis client should try to connect.", cxxopts::value<int>())
             ("o, output", "The redis output key where data are going to be published/set.", cxxopts::value<std::string>())
-            ("s, stream", "Activate stream mode. In stream mode the program will constantly process input data and publish output data. By default stream mode is enabled.")
+            ("s, stream", "Activate stream mode. In stream mode the program will constantly process input data and publish instead of set output data.")
             ("u, unique", "Activate unique mode. In unique mode the program will only read and output data one time.")
             ("tegra-camera", "NVIDIA Tegra specific option. When this is set the program will try to access tegra camera using gstreamer command.")
             ("c, camera-id", "Set camera device id to get frames from. If tegra-camera is set this will have no effect.", cxxopts::value<int>())
@@ -141,13 +149,13 @@ int main(int argc, char** argv)
     // This line is really important otherwise client will not be able to read image data
     server.setCameraParameters(redisCameraParametersOutputKey);
 
-    if (STREAM_MODE) {
+    if(UNIQUE) {
+       server.outputCameraFrame(STREAM_MODE, redisOutputKey);
+    } else {
         while (true) {
-            server.outputCameraFrame(true, redisOutputKey);
+            server.outputCameraFrame(STREAM_MODE, redisOutputKey);
         }
     }
-    else {
-        server.outputCameraFrame(false, redisOutputKey);
-    }
+
     return EXIT_SUCCESS;
 }
