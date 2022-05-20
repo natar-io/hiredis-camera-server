@@ -33,12 +33,12 @@ Usage:
   -o, --output arg             The redis output key where data are going to
                                be published/set.
   -s, --stream                 Activate stream mode. In stream mode the
-                               program will constantly process input data and
-                               publish output data. By default stream mode is
-                               enabled.
+                               program will constantly process input data
+                               and publish instead of set output data.
   -u, --unique                 Activate unique mode. In unique mode the
-                               program will only read and output data one time.
-      --tegra-camera           NVIDIA Tegra specific option. When this is set
+                               program will only read and output data one
+                               time.
+  --tegra-camera               NVIDIA Tegra specific option. When this is set
                                the program will try to access tegra camera
                                using gstreamer command.
   -c, --camera-id arg          Set camera device id to get frames from. If
@@ -50,8 +50,15 @@ Usage:
                                stream.
   -h, --help                   Print this help message.
 ```
-### How to use 
+### How to use
 Here are some example of the main uses of the camera-server:
+
+
+Example for natar web server:
+```
+./redis-camera-server -o camera0 --camera-parameters camera0 -v
+```
+
 - Run the camera server **one time** and output data to the redis key: `camera:output`<br></br>
 `./redis-camera-server -u -o  camera:output`
 - Run the camera server in **stream mode** and output data to the redis key: `camera:output`<br></br>
@@ -72,6 +79,8 @@ Here are some example of the main uses of the camera-server:
 ## Running the camera client
 To test out the camera-server we provide you a simple client that display the server output.
 Running `./redis-camera-client -h` to check out client's options.
+
+
 ```
 Usage:
   ./redis-camera-client [OPTION...]

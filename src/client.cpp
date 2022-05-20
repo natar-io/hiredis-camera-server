@@ -117,6 +117,7 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
             }
             return;
         }
+	// TODO: Load the image before, just stream the data here
         cv::Mat frame = cv::Mat(cFrame->height(), cFrame->width(), CV_8UC3, (void*)cFrame->data());
         cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
         cv::imshow("frame", displayFrame);
@@ -124,6 +125,9 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
         delete cFrame;
     }
 }
+
+cv::Mat displayFrame;
+struct cameraParams contextData;
 
 int main(int argc, char** argv)
 {
@@ -150,7 +154,7 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    struct cameraParams contextData;
+    // struct cameraParams contextData;
     contextData.width = clientSync.getInt(redisInputCameraParametersKey + ":width");
     contextData.height = clientSync.getInt(redisInputCameraParametersKey + ":height");
     contextData.channels = clientSync.getInt(redisInputCameraParametersKey + ":channels");
@@ -161,7 +165,8 @@ int main(int argc, char** argv)
             std::cerr << "Could not connect to redis server." << std::endl;
             return EXIT_FAILURE;
         }
-        clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&contextData));
+
+	clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&contextData));
         return EXIT_SUCCESS;
     }
     else {
