@@ -7,8 +7,8 @@
 
 bool VERBOSE = false;
 bool STREAM_MODE = true;
-std::string redisInputKey = "custom:image";
-std::string redisInputCameraParametersKey = "default:camera:parameters";
+std::string redisInputKey = "camera0";
+std::string redisInputCameraParametersKey = "camera0";
 std::string redisHost = "127.0.0.1";
 int redisPort = 6379;
 
@@ -16,6 +16,7 @@ struct cameraParams {
     uint width;
     uint height;
     uint channels;
+    void* client;
 };
 
 static int parseCommandLine(cxxopts::Options options, int argc, char** argv)
@@ -101,28 +102,35 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
     uint width = cameraParams->width;
     uint height = cameraParams->height;
     uint channels = cameraParams->channels;
+    RedisImageHelperSync *clientSync =  (RedisImageHelperSync*) cameraParams->client;
 
     redisReply *reply = (redisReply*) data;
     if  (reply == NULL)
     {
         return;
-    }
-    if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3)
-    {
-        cv::Mat displayFrame;
-        Image* cFrame = RedisImageHelper::dataToImage(reply->element[2]->str, width, height, channels, reply->element[2]->len);
-        if (cFrame == NULL) {
-            if (VERBOSE) {
-                std::cerr << "Could not retrieve image from data." << std::endl;
-            }
-            return;
+    } 
+    else { 
+
+    // if (reply->type == REDIS_REPLY_ARRAY && reply->elements == 3)
+    
+        // cv::Mat displayFrame;
+        // Image* cFrame = RedisImageHelper::dataToImage(reply->element[2]->str, width, height, channels, reply->element[2]->len);
+        // if (cFrame == NULL) {
+        //     if (VERBOSE) {
+        //         std::cerr << "Could not retrieve image from data." << std::endl;
+        //     }
+        //     return;
+        // }
+      // Do another get
+       cv::Mat displayFrame;
+       Image* image = clientSync->getImage(width, height, channels, redisInputKey);
+        if (image == NULL) { 
+          std::cerr << "Error: Could not get camera frame, exiting..." << std::endl;
+        }else { 
+          cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
+          cv::imshow("frame", frame);
+          cv::waitKey(1);
         }
-	// TODO: Load the image before, just stream the data here
-        cv::Mat frame = cv::Mat(cFrame->height(), cFrame->width(), CV_8UC3, (void*)cFrame->data());
-        cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
-        cv::imshow("frame", displayFrame);
-        cv::waitKey(30);
-        delete cFrame;
     }
 }
 
@@ -136,7 +144,7 @@ int main(int argc, char** argv)
             ("redis-host", "The host adress to which the redis client should try to connect", cxxopts::value<std::string>())
             ("redis-port", "The port to which the redis client should try to connect.", cxxopts::value<int>())
             ("i, input", "The redis input key where data are going to arrive.", cxxopts::value<std::string>())
-            ("s, stream", "Activate stream mode. In stream mode the program will constantly process input data and publish output data. By default stream mode is enabled.")
+            ("s, stream", "Deactivate stream mode. In stream mode the program will constantly process input data and publish output data. By default stream mode is enabled.")
             ("u, unique", "Activate unique mode. In unique mode the program will only read and output data one time.")
             ("v, verbose", "Enable verbose mode. This will print helpfull process informations on the standard error stream.")
             ("camera-parameters", "The redis input key where camera-parameters are going to arrive.", cxxopts::value<std::string>())
@@ -158,6 +166,7 @@ int main(int argc, char** argv)
     contextData.width = clientSync.getInt(redisInputCameraParametersKey + ":width");
     contextData.height = clientSync.getInt(redisInputCameraParametersKey + ":height");
     contextData.channels = clientSync.getInt(redisInputCameraParametersKey + ":channels");
+    contextData.client = &clientSync;
 
     if (STREAM_MODE) {
         RedisImageHelperAsync clientAsync(redisHost, redisPort, redisInputKey);
@@ -166,7 +175,7 @@ int main(int argc, char** argv)
             return EXIT_FAILURE;
         }
 
-	clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&contextData));
+	      clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&contextData));
         return EXIT_SUCCESS;
     }
     else {

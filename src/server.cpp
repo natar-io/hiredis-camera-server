@@ -4,11 +4,11 @@
 #include <string>
 
 bool VERBOSE = false;
-bool STREAM_MODE = false;
+bool STREAM_MODE = true;
 bool UNIQUE = false;
 bool TEGRA = false;
-std::string redisOutputKey = "custom:image";
-std::string redisCameraParametersOutputKey = "default:camera:parameters";
+std::string redisOutputKey = "camera0";
+std::string redisCameraParametersOutputKey = "camera0";
 std::string redisHost = "127.0.0.1";
 int redisPort = 6379;
 int cameraId = 0;
@@ -63,9 +63,9 @@ static int parseCommandLine(cxxopts::Options options, int argc, char** argv)
     }
 
     if (result.count("s")) {
-        STREAM_MODE = true;
+        STREAM_MODE = false;
         if (VERBOSE) {
-            std::cerr << "Stream mode enabled." << std::endl;
+            std::cerr << "Stream mode disabled." << std::endl;
         }
     }
 
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
             ("redis-host", "The host adress to which the redis client should try to connect", cxxopts::value<std::string>())
             ("redis-port", "The port to which the redis client should try to connect.", cxxopts::value<int>())
             ("o, output", "The redis output key where data are going to be published/set.", cxxopts::value<std::string>())
-            ("s, stream", "Activate stream mode. In stream mode the program will constantly process input data and publish instead of set output data.")
+            ("s, stream", "Deactivate stream mode. In stream mode the program will constantly process input data and publish an event along with a set of output data.")
             ("u, unique", "Activate unique mode. In unique mode the program will only read and output data one time.")
             ("tegra-camera", "NVIDIA Tegra specific option. When this is set the program will try to access tegra camera using gstreamer command.")
             ("c, camera-id", "Set camera device id to get frames from. If tegra-camera is set this will have no effect.", cxxopts::value<int>())

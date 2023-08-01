@@ -32,6 +32,9 @@ bool RedisCameraServer::start(std::string gstreamerCommand)
 bool RedisCameraServer::start(int cameraId)
 {
     m_camera = new cv::VideoCapture(cameraId);
+    // m_camera->set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    // m_camera->set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+
     if (!m_camera->isOpened())
     {
         std::cout << "Could not open video capture device " << cameraId << "." << std::endl;
@@ -54,6 +57,8 @@ void RedisCameraServer::setCameraParameters(std::string outputKey)
     m_imageClient->setInt(frame.cols, outputKey + ":width");
     m_imageClient->setInt(frame.rows, outputKey + ":height");
     m_imageClient->setInt(frame.channels(), outputKey + ":channels");
+    std::cout << "channels " << frame.channels();
+    std::cout << "type " << frame.type() << std::endl;
 }
 
 void RedisCameraServer::outputCameraFrame(bool publish, std::string outputKey)
@@ -63,9 +68,17 @@ void RedisCameraServer::outputCameraFrame(bool publish, std::string outputKey)
     cv::cvtColor(frame, RGBFrame, cv::COLOR_RGB2BGR);
 
     Image* image = new Image(RGBFrame.cols, RGBFrame.rows, RGBFrame.channels(), RGBFrame.data);
-    if (publish)
-        m_imageClient->publishImage(image, outputKey);
-    else
-        m_imageClient->setImage(image, outputKey);
+    if (publish){
+       m_imageClient->setImage(image, outputKey);
+
+       // IMG should be a json with timestamp
+       m_imageClient->publishString("{timestamp: 1}", outputKey);
+      //  m_imageClient->publishImage(image, outputKey);
+    }
+      
+    else{
+      m_imageClient->setImage(image, outputKey);
+    }
+       
     delete image;
 }
