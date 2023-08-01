@@ -32,8 +32,14 @@ bool RedisCameraServer::start(std::string gstreamerCommand)
 bool RedisCameraServer::start(int cameraId)
 {
     m_camera = new cv::VideoCapture(cameraId);
-    // m_camera->set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    // m_camera->set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    // m_camera->set(cv::CAP_PROP_FRAME_WIDTH, 800);
+    // m_camera->set(cv::CAP_PROP_FRAME_HEIGHT, 600);
+    
+    // Fourcc not working ...
+    // m_camera->set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));
+    // m_camera->set(cv::CAP_PROP_FPS, 30);
+    // m_camera->set(cv::CAP_PROP_FRAME_WIDTH, 1920);
+    // m_camera->set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
 
     if (!m_camera->isOpened())
     {

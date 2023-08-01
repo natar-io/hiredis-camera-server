@@ -104,6 +104,8 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
     uint channels = cameraParams->channels;
     RedisImageHelperSync *clientSync =  (RedisImageHelperSync*) cameraParams->client;
 
+    // std::cout << "Width height " << width << " " << height << std::endl;
+
     redisReply *reply = (redisReply*) data;
     if  (reply == NULL)
     {
@@ -127,8 +129,16 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
         if (image == NULL) { 
           std::cerr << "Error: Could not get camera frame, exiting..." << std::endl;
         }else { 
+          // cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
           cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
+
+          //  cv::cvtColor(frame, displayFrame, cv::COLOR_GRAY2RGB);
+         //  cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
+          //  cv::Mat hsv = cv::Mat(image->height(), image->width(), CV_8UC3); 
+         // cv::cvtColor(frame, displayFrame, cv::COLOR_BGR2HSV);
           cv::imshow("frame", frame);
+          // cv::imshow("frame", frame);
+          // cv::imshow("colored", hsv);
           cv::waitKey(1);
         }
     }
@@ -176,6 +186,17 @@ int main(int argc, char** argv)
         }
 
 	      clientAsync.subscribe(redisInputKey, onImagePublished, static_cast<void*>(&contextData));
+        // while(true){
+        //   cv::Mat displayFrame;
+        //   Image* image = clientSync.getImage(contextData.width, contextData.height, contextData.channels, redisInputKey);
+        //   if (image == NULL) { std::cerr << "Error: Could not get camera frame, exiting..." << std::endl; return EXIT_FAILURE;}
+        //   cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
+        //   cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
+        //   cv::imshow("frame", displayFrame);
+        //   cv::waitKey(1);
+        //   delete image;
+        // }
+
         return EXIT_SUCCESS;
     }
     else {
