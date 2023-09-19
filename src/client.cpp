@@ -4,11 +4,12 @@
 #include <RedisImageHelper.hpp>
 #include <cxxopts.hpp>
 #include "ImageUtils.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
 
 bool VERBOSE = false;
 bool STREAM_MODE = true;
 std::string redisInputKey = "camera0";
-std::string redisInputCameraParametersKey = "camera0";
 std::string redisHost = "127.0.0.1";
 int redisPort = 6379;
 
@@ -75,17 +76,6 @@ static int parseCommandLine(cxxopts::Options options, int argc, char** argv)
         }
     }
 
-    if (result.count("camera-parameters")) {
-        redisInputCameraParametersKey = result["camera-parameters"].as<std::string>();
-        if (VERBOSE) {
-            std::cerr << "Camera parameters output key was set to " << redisInputCameraParametersKey << std::endl;
-        }
-    }
-    else {
-        if (VERBOSE) {
-            std::cerr << "No camera parameters output key specified. Camera parameters output key was set to " << redisInputCameraParametersKey << std::endl;
-        }
-    }
 
     return 0;
 }
@@ -129,16 +119,41 @@ void onImagePublished(redisAsyncContext* c, void* data, void* privdata)
         if (image == NULL) { 
           std::cerr << "Error: Could not get camera frame, exiting..." << std::endl;
         }else { 
+
+          cv::Mat frame;
+
+          // std::cout << "Channels" << channels << std::endl; 
+          if(channels == 2){
+ // cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
+            frame = cv::Mat(image->height(), image->width(), CV_16UC1, (void*)image->data());     
+
+            // cv::Mat new_image = cv::Mat::zeros( frame.size(), frame.type() );
+            // double alpha = 2.0; /*< Simple contrast control */
+            // int beta = 10; /*< Simple brightness control */
+
+            // for( int y = 0; y < frame.rows; y++ ) {
+            //   for( int x = 0; x < frame.cols; x++ ) {
+            //     for( int c = 0; c < frame.channels(); c++ ) {
+            //       new_image.at<cv::Vec3b>(y,x)[c] =
+            //       cv::saturate_cast<uchar>( alpha*frame.at<cv::Vec3b>(y,x)[c] + beta );
+            //     }
+            //   }
+            // }
+            // frame = new_image;
+          }
+
+          if(channels == 3){
+            frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
+          }
           // cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
-          cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
+          // cv::Mat frame = cv::Mat(image->height(), image->width(), CV_8UC3, (void*)image->data());
 
           //  cv::cvtColor(frame, displayFrame, cv::COLOR_GRAY2RGB);
-         //  cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
+          //  cv::cvtColor(frame, displayFrame, cv::COLOR_RGB2BGR);
           //  cv::Mat hsv = cv::Mat(image->height(), image->width(), CV_8UC3); 
-         // cv::cvtColor(frame, displayFrame, cv::COLOR_BGR2HSV);
+          // cv::cvtColor(frame, displayFrame, cv::COLOR_BGR2HSV);
+           // cv::imshow("frame", frame);
           cv::imshow("frame", frame);
-          // cv::imshow("frame", frame);
-          // cv::imshow("colored", hsv);
           cv::waitKey(1);
         }
     }
@@ -157,7 +172,6 @@ int main(int argc, char** argv)
             ("s, stream", "Deactivate stream mode. In stream mode the program will constantly process input data and publish output data. By default stream mode is enabled.")
             ("u, unique", "Activate unique mode. In unique mode the program will only read and output data one time.")
             ("v, verbose", "Enable verbose mode. This will print helpfull process informations on the standard error stream.")
-            ("camera-parameters", "The redis input key where camera-parameters are going to arrive.", cxxopts::value<std::string>())
             ("h, help", "Print this help message.");
 
     int retCode = parseCommandLine(options, argc, argv);
@@ -173,9 +187,10 @@ int main(int argc, char** argv)
     }
 
     // struct cameraParams contextData;
-    contextData.width = clientSync.getInt(redisInputCameraParametersKey + ":width");
-    contextData.height = clientSync.getInt(redisInputCameraParametersKey + ":height");
-    contextData.channels = clientSync.getInt(redisInputCameraParametersKey + ":channels");
+    // Removed cameraParameters...
+    contextData.width = clientSync.getInt(redisInputKey + ":width");
+    contextData.height = clientSync.getInt(redisInputKey + ":height");
+    contextData.channels = clientSync.getInt(redisInputKey + ":channels");
     contextData.client = &clientSync;
 
     if (STREAM_MODE) {
